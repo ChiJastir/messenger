@@ -25,4 +25,13 @@ Route::middleware([
     Route::get('/addChat',
         [\App\Http\Controllers\ChatsController::class, 'showAddNewChat']
     )->name('addChat');
+    Route::get('/chat',
+        [\App\Http\Controllers\ChatsController::class, 'showChat']
+    )->name('chat');
+    Route::post('/checkChat',
+        [\App\Http\Controllers\ChatsController::class, 'checkChat']
+    )->name('checkChat');
+//    Route::post('/chat',
+//        [\App\Http\Controllers\ChatsController::class, 'createChat']
+//    )->name('createChat');
 });
