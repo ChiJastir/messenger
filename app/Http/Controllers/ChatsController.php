@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chat;
+use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ChatsController extends Controller
@@ -22,14 +22,8 @@ class ChatsController extends Controller
 
     public function showChat(Request $request)
     {
-        $chat = User::where('id','=', $request->all()['id'])->get();
-        return Inertia::render('Chat', ['chat' => $chat[0]]);
-    }
-
-    public function checkChat(Request $request)
-    {
-        $first_user_id = $request->all()['first_user_id'];
-        $second_user_id = $request->all()['second_user_id'];
+        $first_user_id = $request->all()['first'];
+        $second_user_id = $request->all()['second'];
 
         $chat = Chat::where([
             ['first_user_id', '=', $first_user_id],
@@ -39,39 +33,29 @@ class ChatsController extends Controller
             ['second_user_id', '=', $first_user_id],
         ])->get();
 
-        if (count($chat) != 0)
-        {
-            dd('already exist');
-        }
-        else
-        {
-            dd('not exist');
-        }
+        $interlocutor = User::where('id','=', $second_user_id)->get();
+        $messages = Message::where('chat_id', '=', $chat[0]->id)->get();
+//        dd($messages);
+        return Inertia::render('Chat', ['interlocutor' => $interlocutor[0], 'chat' => $chat, 'messages' => $messages]);
     }
 
     public function createChat(Request $request)
     {
-        $first_user_id = $request->all()['first_user_id'];
-        $second_user_id = $request->all()['second_user_id'];
+        $first_user = $request->all()['first_user'];
+        $second_user = $request->all()['second_user'];
+        $message = $request->all()['message'];
 
-        $chat = Chat::where([
-            ['first_user_id', '=', $first_user_id],
-            ['second_user_id', '=', $second_user_id],
-        ])->orWhere([
-            ['first_user_id', '=', $second_user_id],
-            ['second_user_id', '=', $first_user_id],
-        ])->get();
+        $chat = Chat::create([
+            'first_user_id' => $first_user['id'],
+            'second_user_id' => $second_user['id'],
+        ]);
 
-        if (count($chat) != 0)
-        {
-            dd('already exist');
-        }
-        else
-        {
-            Chat::create([
-                'first_user_id' => $first_user_id,
-                'second_user_id' => $second_user_id,
-            ]);
-        }
+        $response = [
+            'chat' => $chat[0],
+            'user' => $first_user,
+            'message' => $message,
+        ];
+
+        (new MessagesController)->sendMessage($response);
     }
 }
