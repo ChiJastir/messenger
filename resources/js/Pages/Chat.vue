@@ -3,9 +3,9 @@ import AppLayout from "@/Layouts/AppLayout.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 import {router} from "@inertiajs/vue3";
 import TextInput from "@/Components/TextInput.vue";
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
 
-defineProps({
+const props = defineProps({
     auth: Object,
     interlocutor: Object,
     chat: Object,
@@ -13,6 +13,7 @@ defineProps({
 })
 
 const messageInput = ref('')
+const messagesArray = ref(props.messages)
 
 function createChat(auth, interlocutor, message){
     router.post(route('createChat'), {
@@ -43,6 +44,24 @@ function sendMessage(auth, interlocutor, chat, messageInput){
     }
 }
 
+function sentMessage(query){
+    if (query != '') {
+        router.get(route('sentMessage'), {
+            message: query,
+            user: props.auth.user,
+            chat: props.chat[0]
+        }, {preserveState: true})
+    }
+}
+
+onMounted(() => {
+    Echo.private('Chat.'+props.chat[0].id).listen('Chat\\MessageSent', (e) => {
+        console.log(e, messagesArray)
+        messagesArray.value.push(e.message)
+        console.log(e, messagesArray)
+    })
+})
+
 </script>
 
 <template>
@@ -55,12 +74,15 @@ function sendMessage(auth, interlocutor, chat, messageInput){
                 </div>
                 <PrimaryButton @click="createChat(auth.user, interlocutor)">Let`s to talk</PrimaryButton>
 
-                <div class="mt-2" :class="auth.user.id === message.sender_id ? 'text-right bg-blue-400' : 'text-left bg-gray-400'" v-for="message in messages">
+                <div class="mt-2" :class="auth.user.id === message.sender_id ? 'text-right bg-blue-400' : 'text-left bg-gray-400'" v-for="message in messagesArray">
                     <p>{{ message.message }}</p>
                     <span>{{ (message.created_at).match(/\d{2}:\d{2}:\d{2}/)[0] }}</span>
                 </div>
 
                 <TextInput @keyup.enter="sendMessage(auth.user, interlocutor, chat, messageInput)" v-model="messageInput"/>
+                <PrimaryButton @click="sentMessage(messageInput)">
+                    Send
+                </PrimaryButton>
             </div>
         </div>
     </AppLayout>

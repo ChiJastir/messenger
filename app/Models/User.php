@@ -70,4 +70,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Message::class);
     }
+    public function hasChat(int $chat)
+    {
+        return count(Chat::where([
+            ['id', '=', $chat],
+            ['first_user_id', '=', $this->id],
+        ])->orWhere([
+            ['id', '=', $chat],
+            ['second_user_id', '=', $this->id],
+        ])->get()) != 0;
+    }
 }

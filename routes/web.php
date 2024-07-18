@@ -32,7 +32,12 @@ Route::middleware([
         [\App\Http\Controllers\ChatsController::class, 'createChat']
     )->name('createChat');
 
+
+
     Route::post('/sendMessage',
         [\App\Http\Controllers\MessagesController::class, 'sendMessage']
     )->name('sendMessage');
+    Route::get('/sentMessage',
+        [\App\Http\Controllers\MessagesController::class, 'sentMessage']
+    )->name('sentMessage');
 });

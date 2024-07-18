@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TestEvent;
 use App\Models\Chat;
 use App\Models\Message;
 use App\Models\User;
@@ -34,7 +35,12 @@ class ChatsController extends Controller
         ])->get();
 
         $interlocutor = User::where('id','=', $second_user_id)->get();
-        $messages = Message::where('chat_id', '=', $chat[0]->id)->get();
+        if(count($chat) != 0){
+            $messages = Message::where('chat_id', '=', $chat[0]->id)->get();
+        }
+        else{
+            $messages = [];
+        }
 //        dd($messages);
         return Inertia::render('Chat', ['interlocutor' => $interlocutor[0], 'chat' => $chat, 'messages' => $messages]);
     }
